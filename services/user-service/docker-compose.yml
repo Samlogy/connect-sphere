@@ -1,0 +1,32 @@
+services:
+  user-service:
+    build: .
+    container_name: user-service
+    ports:
+      - "4001:4001"
+    env_file: .env
+    depends_on:
+      - postgres
+    networks:
+      - connectsphere
+
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: usersdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - connectsphere
+
+networks:
+  connectsphere:
+    driver: bridge
+
+volumes:
+  pgdata:
