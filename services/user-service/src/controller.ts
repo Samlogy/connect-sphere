@@ -4,7 +4,7 @@ import { pool } from "./db"
 import service from "./services"
 import { redisClient } from "./cache";
 
-
+// move thiese => GW
 const register = async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
@@ -18,7 +18,6 @@ const register = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Registration failed" });
   }
 };
-
 const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -37,7 +36,7 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
-
+// user-service features
 const getUserProfile = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -66,38 +65,6 @@ const getUserProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-const followUser = async (req: Request, res: Response) => {
-  const { followerId, followingId } = req.body;
-
-  if (followerId === followingId) {
-    return res.status(400).json({ message: "You can't follow yourself" });
-  }
-
-  try {
-    await pool.query(
-      'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-      [followerId, followingId]
-    );
-    res.status(201).json({ message: 'Followed successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-const unfollowUser = async (req: Request, res: Response) => {
-  const { followerId, followingId } = req.body;
-
-  try {
-    await pool.query('DELETE FROM follows WHERE follower_id = $1 AND following_id = $2', [followerId, followingId]);
-    res.status(200).json({ message: 'Unfollowed successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
 const updateUserProfile = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email } = req.body;
@@ -127,6 +94,37 @@ const updateUserProfile = async (req: Request, res: Response) => {
   }
 };
 
+const followUser = async (req: Request, res: Response) => {
+  const { followerId, followingId } = req.body;
+
+  if (followerId === followingId) {
+    return res.status(400).json({ message: "You can't follow yourself" });
+  }
+
+  try {
+    await pool.query(
+      'INSERT INTO followers (user_id, follower_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [followerId, followingId]
+    );
+    res.status(201).json({ message: 'Followed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const unfollowUser = async (req: Request, res: Response) => {
+  const { followerId, followingId } = req.body;
+
+  try {
+    await pool.query('DELETE FROM followers WHERE user_id = $1 AND user_id = $2', [followerId, followingId]);
+    res.status(200).json({ message: 'Unfollowed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const getFollowers = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -142,9 +140,9 @@ const getFollowers = async (req: Request, res: Response) => {
     console.log('💾 Followers cache miss');
     const { rows } = await pool.query(
       `SELECT u.id, u.username, u.email
-       FROM follows f
+       FROM followers f
        JOIN users u ON f.follower_id = u.id
-       WHERE f.following_id = $1`,
+       WHERE f.user_id = $1`,
       [id]
     );
 
@@ -171,8 +169,8 @@ const getFollowing = async (req: Request, res: Response) => {
     console.log('💾 Following cache miss');
     const { rows } = await pool.query(
       `SELECT u.id, u.username, u.email
-       FROM follows f
-       JOIN users u ON f.following_id = u.id
+       FROM followers f
+       JOIN users u ON f.user_id = u.id
        WHERE f.follower_id = $1`,
       [id]
     );
