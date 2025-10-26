@@ -8,4 +8,4 @@ RUN npm i
 RUN npm run build
 
 EXPOSE 4001
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/index.js"]

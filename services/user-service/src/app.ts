@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import controller from "./controller";
-import middleware from "./middleware";
+import controller from "./controllers";
+import middleware from "./middlewares";
 
 dotenv.config();
 const app = express();
