@@ -1,7 +1,8 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /usr/
 COPY package*.json ./
+COPY package.json ./
 COPY . .
 RUN npm i
 RUN npm run build
