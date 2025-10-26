@@ -18,4 +18,10 @@ router.post("/login", controller.login);
 app.use(express.json());
 app.use("/api/users", router);
 
-export default app;
+export async function startServer() {
+  const port = process.env.PORT || 4001;
+  app.listen(port, () => console.log(`✅ User service => ${port}`));
+}
+
+
+export default startServer

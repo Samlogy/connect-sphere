@@ -1,16 +1,18 @@
 services:
   user-service:
     build: .
-    container_name: user-service
+    depends_on:
+      user-service-db:
+        condition: service_healthy  # ✅ Wait for Postgres healthcheck
+      user-service-cache:
+        condition: service_healthy  # ✅ Wait for Redis healthcheck
     ports:
       - "4001:4001"
     env_file: .env
-    depends_on:
-      - postgres
     networks:
       - connectsphere
 
-  postgres:
+  user-service-db:
     image: postgres:17-alpine
     restart: always
     environment:
@@ -21,6 +23,26 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    networks:
+      - connectsphere
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usersdb"]
+      interval: 10s     # how often to run the check
+      timeout: 5s       # timeout for each check
+      retries: 5        # number of retries before marking unhealthy
+      start_period: 10s # grace period before health checks begin
+
+
+  user-service-cache:
+    image: redis:8.2.2-alpine
+    restart: always
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - connectsphere
 

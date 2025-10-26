@@ -1,10 +1,9 @@
-FROM node:20-alpine
+FROM node:18-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /usr/
 COPY package*.json ./
-RUN npm install
 COPY . .
-
+RUN npm i
 RUN npm run build
 
 EXPOSE 4001
