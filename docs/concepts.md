@@ -130,9 +130,9 @@ SELECT
 FROM pg_stat_user_indexes
 WHERE relname = 'users';
 
-# Index Maintenance in Production
-## rebuilding DB in Production (still in use)
-## slower but safer for Production
+# Index Maintenance in prod
+## rebuilding DB in prod (still in use)
+## slower but safer for prod
 REINDEX INDEX CONCURRENTLY idx_users_email;
 
 # enable auto-vacuum & auto-analyze (by default)

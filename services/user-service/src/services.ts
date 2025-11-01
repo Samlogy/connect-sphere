@@ -17,5 +17,5 @@ const createUser = async (username: string, email: string, password: string) => 
 
 
 export default {
-    createUser
+  createUser
 }

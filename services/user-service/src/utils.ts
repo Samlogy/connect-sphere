@@ -1,9 +1,8 @@
 import bcrypt from "bcryptjs";
-import { Application, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import logger from "./logger";
+import config from "./config";
 
-const SECRET = process.env.JWT_SECRET || "supersecret";
+const SECRET = config.auth.jwt_secret || "supersecret";
 
 
 const hashPassword = async (password: string): Promise<string> => {

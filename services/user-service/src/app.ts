@@ -1,26 +1,26 @@
-import dotenv from "dotenv";
 import express from "express";
-import logger from "./logger";
-import mid from "./middlewares";
-import services from "./routes";
 import { startRedis } from "./cache";
+import config from "./config";
 import db from "./db";
+import logger from "./logger";
 
-dotenv.config();
+
+console.log(config)
+
 const app = express();
 
 async function startServer(port: number | string) {
   app.listen(port, () => {
     logger.info(`✅ User service => ${port}`, {
         port,
-        environment: process.env.NODE_ENV || 'dev',
+        environment: config.app.node_env || 'dev',
         nodeVersion: process.version
       })
   })
 }
 
 async function bootstrap() {
-  const PORT = process.env.PORT || 4001;
+  const PORT = config.app.port || 4001;
   try {
     await db.sql;
     await startRedis();
@@ -32,6 +32,5 @@ async function bootstrap() {
 }
 
 export {
-  bootstrap,
-  app
-}
+  app, bootstrap
+};

@@ -1,27 +1,26 @@
-import dotenv from "dotenv";
-import { Application } from "express";
+import { Application, Router } from "express";
 import controller from "./controllers";
-
-dotenv.config();
 
 
 /* Routes */
-const UserServiceRoutes = (app: Application) => {
+const UserServiceRoutes = (route: string, app: Application) => {
+    const router = Router();
+
     // User
-    app.post("/register", controller.user.register);
-    app.post("/login", controller.user.login);
+    router.post("/register", controller.user.register);
+    router.post("/login", controller.user.login);
 
     // Profile
-    app.get('/:id', controller.user.getUserProfile);
-    app.put('/:id', controller.follow.updateUserProfile);
+    router.get('/:id', controller.user.getUserProfile);
+    router.put('/:id', controller.follow.updateUserProfile);
 
     // Follow
-    app.post('/follow', controller.follow.followUser);
-    app.post('/unfollow', controller.follow.unfollowUser);
-    app.get('/:id/followers', controller.follow.getFollowers);
-    app.get('/:id/following', controller.follow.getFollowing);
+    router.post('/follow', controller.follow.followUser);
+    router.post('/unfollow', controller.follow.unfollowUser);
+    router.get('/:id/followers', controller.follow.getFollowers);
+    router.get('/:id/following', controller.follow.getFollowing);
 
-    app.use("/api/v1/users", app);
+    app.use(route, router);
 }
 
 

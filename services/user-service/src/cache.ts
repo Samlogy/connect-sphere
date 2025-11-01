@@ -1,9 +1,10 @@
 import { createClient } from 'redis';
+import config from './config';
 
 let redisClient: ReturnType<typeof createClient>;
 async function startRedis() {
   redisClient = createClient({
-    url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+    url: config.cache.url
   });
 
   redisClient.on('error', (err) => console.error('❌ Redis error: ', err));

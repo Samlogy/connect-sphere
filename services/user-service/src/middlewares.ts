@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 import { REDACT_FIELDS, redact } from './logger';
 import logger from "./logger"
+import config from "./config";
 
 // Middleware Auth
 const authenticate = (req: any, res: Response, next: NextFunction) => {
@@ -12,7 +13,7 @@ const authenticate = (req: any, res: Response, next: NextFunction) => {
 
   const token = header.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, config.auth.jwt_secret);
     req.user = decoded;
     next();
   } catch {
@@ -21,18 +22,25 @@ const authenticate = (req: any, res: Response, next: NextFunction) => {
 };
 
 // Middleware Security
+const allowedOrigins = ['http://localhost:5176', 'http://yourapp.com']
+const allowedMethods = ['GET', 'POST', 'DELETE', 'PUT', 'PATCH']
+const allowedHeaders = ['Content-Type', 'Authorization']
 const corsPolicy = (app: Application) => {
-  const corsOptions = {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  };
-  app.use(cors(corsOptions));
-}
-
-const securityMiddleware = (app: Application) => {
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+  const corsPolicy = cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true)
+        if (allowedOrigins.indexOf(origin) === -1) {
+          const msg = 'The CORS policy for this site does not ' + 'allow access from the specified Origin.'
+          return callback(new Error(msg), false)
+        }
+        return callback(null, true)
+      },
+      methods: allowedMethods,
+      allowedHeaders,
+      // credentials: true, // enable HTTP cookies
+      // optionsSuccessStatus: 200
+    })
+  app.use(corsPolicy)
 }
 
 declare global {
@@ -129,7 +137,6 @@ export default {
     },
     security: {
       corsPolicy,
-      securityMiddleware
     },
     logging: {
       requestIdMiddleware,

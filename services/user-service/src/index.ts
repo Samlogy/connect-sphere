@@ -1,10 +1,9 @@
-import dotenv from "dotenv";
-import express, { Application, Request, Response } from "express";
-import { bootstrap, app } from "./app";
+import express from "express";
+import { app, bootstrap } from "./app";
+import error from "./error";
 import logger from "./logger";
 import mid from "./middlewares";
 import services from "./routes";
-import error from "./error";
 
 
 // Log all requests
@@ -12,18 +11,21 @@ app.use(mid.logging.requestIdMiddleware);
 app.use(mid.logging.requestLogger);
 
 // Basic middleware (security)
-mid.security.securityMiddleware(app)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get('/r1', (req, res) => res.json({ message: 'User Service R1' }));
+app.get('/r2', (req, res) => res.json({ message: 'User Service R2' }));
 
 // CORS setup
 mid.security.corsPolicy(app);
 
-/* Routes */
-// services.UserServiceRoutes(app);
-
-
-
 // Health check
 error.healthCheck(app);
+
+/* Routes */
+services.UserServiceRoutes("/api/v1/users", app);
+
 
 // Global error handler
 error.globalErrorHandler(app);
@@ -32,7 +34,8 @@ error.globalErrorHandler(app);
 bootstrap();
 
 // 404 handler
-// error.NotFoundHandler(app);
+error.NotFoundHandler(app);
+
 
 
 
