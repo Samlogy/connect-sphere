@@ -1,0 +1,20 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    json.message_key: log
+    json.add_error_key: true
+    json.expand_keys: true
+    processors:
+      - add_docker_metadata: ~
+      - drop_event:
+          when:
+            contains:
+              container.name: "filebeat"
+      - drop_event:
+          when:
+            contains:
+              container.name: "elasticsearch"
+
+output.logstash:
+  hosts: ["logstash:5044"]
