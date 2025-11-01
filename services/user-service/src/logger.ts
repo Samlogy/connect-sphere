@@ -118,8 +118,24 @@ function safeLog(level: string, message: any, meta?: any) {
   baseLogger.log(level, message, redactedMeta);
 }
 
+const logError = (err: any, req: any) => {
+  baseLogger.error({
+    message: err.message,
+    stack: err.stack,
+    requestId: req?.requestId,
+    appName: process.env.APP_NAME || 'user-service',
+    api: req?.baseUrl || 'unknown',
+    method: req?.method,
+    originUrl: req?.headers?.origin || 'unknown',
+    requestUrl: req?.originalUrl,
+    routeToUrl: req ? `${req.protocol}://${req.get('host')}${req.originalUrl}` : 'unknown',
+    response_code: err.statusCode || 500
+  });
+};
+
 export default {
   logger: baseLogger,
+  logError,
   info: (msg: any, meta?: any) => safeLog('info', msg, meta),
   warn: (msg: any, meta?: any) => safeLog('warn', msg, meta),
   error: (msg: any, meta?: any) => safeLog('error', msg, meta),

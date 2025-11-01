@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { REDACT_FIELDS, redact } from './logger';
 import logger from "./logger"
 
+// Middleware Auth
 const authenticate = (req: any, res: Response, next: NextFunction) => {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json({ error: "No token provided" });
@@ -19,6 +20,7 @@ const authenticate = (req: any, res: Response, next: NextFunction) => {
   }
 };
 
+// Middleware Security
 const corsPolicy = (app: Application) => {
   const corsOptions = {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
@@ -42,6 +44,7 @@ declare global {
   }
 }
 
+// Middleware Logging
 const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const id = req.headers['x-request-id'] as string || uuidv4();
   req.requestId = id;
@@ -56,6 +59,10 @@ const  requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const { method, originalUrl, ip } = req;
   const log = req.log || console;
+  const requestId = uuidv4();
+
+  // Sauvegarder dans la requête pour usage ultérieur
+  req.requestId = requestId;
 
   // Log basic incoming request (redacted)
   log.info('incoming_request', {
@@ -70,18 +77,26 @@ const  requestLogger = (req: Request, res: Response, next: NextFunction) => {
   // hook to log response once finished
   res.on('finish', () => {
     const duration = Date.now() - start;
+    
     log.info('request_completed', {
-      method,
-      url: originalUrl,
-      statusCode: res.statusCode,
+      message: 'API request processed',
+      requestId,
+      appName: process.env.APP_NAME || 'user-service',
+      api: req.baseUrl || req.originalUrl,
+      method: req.method,
+      response_code: res.statusCode,
+      originUrl: req.headers.origin || 'unknown',
+      requestUrl: req.originalUrl,
+      routeToUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       durationMs: duration,
-      responseHeaders: res.getHeaders()
+      userAgent: req.headers['user-agent']
     });
   });
 
   next();
 }
 
+// Middleware Error Logging
 const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   const status = err.statusCode || 500;
   const log = req.log || logger;
