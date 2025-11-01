@@ -1,39 +1,37 @@
-import express from "express";
 import dotenv from "dotenv";
-import controller from "./controllers";
-import middleware from "./middlewares";
+import express from "express";
+import logger from "./logger";
+import mid from "./middlewares";
+import services from "./routes";
+import { startRedis } from "./cache";
+import db from "./db";
 
 dotenv.config();
 const app = express();
-const router = express.Router();
 
-
-// User
-router.post("/register", controller.user.register);
-router.post("/login", controller.user.login);
-
-// Profile
-router.get('/:id', controller.user.getUserProfile);
-router.put('/:id', controller.follow.updateUserProfile);
-
-
-// Follow system
-router.post('/follow', controller.follow.followUser);
-router.post('/unfollow', controller.follow.unfollowUser);
-router.get('/:id/followers', controller.follow.getFollowers);
-router.get('/:id/following', controller.follow.getFollowing);
-
-// router.get("/me", middleware.auth.authenticate, async (req: any, res: Response) => {
-//   res.json({ user: req.user });
-// });
-
-app.use(express.json());
-app.use("/api/v1/users", router);
-
-export async function startServer() {
-  const port = process.env.PORT || 4001;
-  app.listen(port, () => console.log(`✅ User service => ${port}`));
+async function startServer(port: number | string) {
+  app.listen(port, () => {
+    logger.info(`✅ User service => ${port}`, {
+        port,
+        environment: process.env.NODE_ENV || 'dev',
+        nodeVersion: process.version
+      })
+  })
 }
 
+async function bootstrap() {
+  const PORT = process.env.PORT || 4001;
+  try {
+    await db.sql;
+    await startRedis();
+    await startServer(PORT);
+  } catch (err) {
+    console.error('❌ Application failed to start: ', err);
+    process.exit(1);
+  }
+}
 
-export default startServer
+export {
+  bootstrap,
+  app
+}

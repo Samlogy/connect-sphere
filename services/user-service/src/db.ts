@@ -14,7 +14,7 @@ export const pool = new Pool({
 });
 
 
-export async function initDB(): Promise<void> {
+async function initDB(): Promise<void> {
   const filePath = path.join(__dirname, '../scripts/init.sql');
 
   if (!fs.existsSync(filePath)) {
@@ -40,3 +40,5 @@ export async function initDB(): Promise<void> {
     client.release();
   }
 }
+
+export default { sql: initDB, nosql: {} };

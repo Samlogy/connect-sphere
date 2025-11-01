@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
+import { Application, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import logger from "./logger";
 
 const SECRET = process.env.JWT_SECRET || "supersecret";
 
@@ -23,13 +25,14 @@ const verifyToken = (token: string) => {
 };
 
 
+
 export default {
-    jwt: {
-        generateToken,
-        verifyToken
-    },
-    hash: {
-        hashPassword,
-        comparePassword
-    }
+  jwt: {
+    generateToken,
+    verifyToken
+  },
+  hash: {
+    hashPassword,
+    comparePassword
+  }
 }

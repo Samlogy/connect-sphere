@@ -1,4 +1,7 @@
-user-service/.env
-user-service/node_modules
+services/user-service/.env
+services/user-service/node_modules
+
+front/node_modules
+front/.env
 
 gw
