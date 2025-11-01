@@ -1,7 +1,6 @@
 #  Roadmap => Sr Software Engineer
 
 **User-service:**
-fix 404 + routing user
 
 **DB:**
 transactions, locks, partitioning, replicas, sharding.

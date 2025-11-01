@@ -1,18 +1,20 @@
 services:
-  # user-service:
-  #   build: .
-  #   depends_on:
-  #     user-service-db:
-  #       condition: service_healthy  # ✅ Wait for Postgres healthcheck
-  #     user-service-cache:
-  #       condition: service_healthy  # ✅ Wait for Redis healthcheck
-  #     # logstash:
-  #     #   condition: service_started  # Wait for Logstash to start
-  #   ports:
-  #     - "4001:4001"
-  #   env_file: .env
-  #   networks:
-  #     - connectsphere
+  user-service:
+    build: .
+    depends_on:
+      user-service-db:
+        condition: service_healthy  # ✅ Wait for Postgres healthcheck
+      user-service-cache:
+        condition: service_healthy  # ✅ Wait for Redis healthcheck
+      # logstash:
+      #   condition: service_started  # Wait for Logstash to start
+    ports:
+      - "4001:4001"
+    # env_file: .env
+    environment:
+      - NODE_ENV=dev
+    networks:
+      - connectsphere
 
   user-service-db:
     image: postgres:17-alpine

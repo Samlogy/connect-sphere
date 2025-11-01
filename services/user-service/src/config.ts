@@ -4,7 +4,7 @@ dotenv.config();
 const env = process.env.NODE_ENV || 'local';
 
 
-const localConfig = {
+const localConfig: any = {
     app: {
         port: parseInt(process.env.PORT || '4001'),
         node_env: process.env.NODE_ENV || 'local',
@@ -13,14 +13,14 @@ const localConfig = {
         jwt_secret: process.env.JWT_SECRET || "supersecret"
     },
     db: {
-        user: process.env.PG_USER || "",
-        host: process.env.PG_HOST || "",
-        database: process.env.PG_DATABASE || "",
-        password: process.env.PG_PASSWORD || "",
-        port: process.env.PG_PORT,
+        user: process.env.PG_USER || "postgres",
+        host: process.env.PG_HOST || "localhost",
+        database: process.env.PG_DATABASE || "usersdb",
+        password: process.env.PG_PASSWORD || "postgres",
+        port: process.env.PG_PORT || 5433,
     },
     cache: {
-        url: process.env.REDIS_URL || '',
+        url: process.env.REDIS_URL || "redis://localhost:6380",
     },
     log: {
         logLevel: process.env.LOG_LEVEL || 'info',
@@ -33,7 +33,7 @@ const localConfig = {
         host: 'http://localhost:9200',
     },
 };
-const devConfig = {
+const devConfig: any = {
     app: {
         port: parseInt(process.env.PORT || '4001'),
         node_env: process.env.NODE_ENV || 'dev',
@@ -42,14 +42,14 @@ const devConfig = {
         jwt_secret: process.env.JWT_SECRET || "supersecret"
     },
     db: {
-        user: process.env.PG_USER || "",
-        host: process.env.PG_HOST || "",
-        database: process.env.PG_DATABASE || "",
-        password: process.env.PG_PASSWORD || "",
-        port: process.env.PG_PORT,
+        user: process.env.PG_USER || "postgres",
+        host: process.env.PG_HOST || "user-service-db",
+        database: process.env.PG_DATABASE || "usersdb",
+        password: process.env.PG_PASSWORD || "postgres",
+        port: process.env.PG_PORT || 5432,
     },
     cache: {
-        url: process.env.REDIS_URL || '',
+        url: process.env.REDIS_URL || "redis://user-service-cache:6379",
     },
     log: {
         logLevel: process.env.LOG_LEVEL || 'info',
@@ -59,10 +59,10 @@ const devConfig = {
     },
     elk: {
         enabled: false,
-        host: 'http://localhost:9200',
+        host: 'http://elasticsearch:9200',
     },
 };
-const prodConfig = {
+const prodConfig: any = {
     app: {
         port: parseInt(process.env.PORT || '4001'),
         node_env: process.env.NODE_ENV || 'prod',
@@ -71,14 +71,14 @@ const prodConfig = {
         jwt_secret: process.env.JWT_SECRET || "supersecret"
     },
     db: {
-        user: process.env.PG_USER || "",
-        host: process.env.PG_HOST || "",
-        database: process.env.PG_DATABASE || "",
-        password: process.env.PG_PASSWORD || "",
-        port: process.env.PG_PORT,
+        user: process.env.PG_USER || "postgres",
+        host: process.env.PG_HOST || "user-service-db",
+        database: process.env.PG_DATABASE || "usersdb",
+        password: process.env.PG_PASSWORD || "postgres",
+        port: process.env.PG_PORT || 5432,
     },
     cache: {
-        url: process.env.REDIS_URL || '',
+        url: process.env.REDIS_URL || "redis://user-service-cache:6379",
     },
     log: {
         logLevel: process.env.LOG_LEVEL || 'info',
@@ -88,7 +88,7 @@ const prodConfig = {
     },
     elk: {
         enabled: false,
-        host: 'http://localhost:9200',
+        host: 'http://elasticsearch:9200',
     },
 };
 
