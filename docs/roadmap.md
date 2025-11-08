@@ -1,7 +1,14 @@
 #  Roadmap => Sr Software Engineer
 
-**User-service:**
-beug fix => log system (non remonté log app => elasticsearch).
+**search-service:**
+
+Search for users, products, and posts:
+
+Responsibilities: support search queries across users, posts, media, marketplace items. Provide analytics.
+Technology: Use Elasticsearch for full-text search, faceted search, analytics indexing.
+Flow: On content creation/update (post, media, item) → service publishes event → Search service indexes document into Elasticsearch. Client search request → hits Search service → queries Elasticsearch and returns results.
+Scaling: Elasticsearch cluster can be sharded/replicated; index updates can be batched or near-real-time; monitoring of shards/heap is necessary.
+Reason: Relational DBs are poor for full-text search and analytics; Elasticsearch is optimized for such workloads.
 
 **DB:**
 transactions, locks, partitioning, replicas, sharding.
@@ -39,9 +46,18 @@ tracing app.
 **Gestion secrets:**
 Vault
 
+logs, monitoring, tracing (observability)
+scalability
+resilience
+....
+
 
 
 ## DONE
+
+**User-service:**
+beug fix => log system (non remonté log app => elasticsearch).
+
 **logging / monitpring:**
 logging system
 

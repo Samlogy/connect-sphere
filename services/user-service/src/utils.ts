@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import config from "./config";
+import { Application } from "express";
+import { register as metricsRegister } from 'prom-client';
 
 const SECRET = config.auth.jwt_secret || "supersecret";
 
@@ -24,6 +26,13 @@ const verifyToken = (token: string) => {
 };
 
 
+const metricsEndpoint = (app: Application) => {
+  app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', metricsRegister.contentType);
+    res.send(await metricsRegister.metrics());
+  });
+}
+
 
 export default {
   jwt: {
@@ -33,5 +42,8 @@ export default {
   hash: {
     hashPassword,
     comparePassword
+  },
+  metrics: {
+    metricsEndpoint
   }
 }

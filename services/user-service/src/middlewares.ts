@@ -2,9 +2,9 @@ import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
-// import { REDACT_FIELDS, redact } from './logger';
 import { logger } from "./logger"
 import config from "./config";
+import { httpRequestDuration, httpRequestsTotal } from './metrics';
 
 export interface LogEntry {
   message: string;
@@ -115,6 +115,21 @@ function errorMiddleware(err: any, req: any, res: Response, next: NextFunction):
   res.status(500).json({ error: "Internal server error" });
 }
 
+// Metrics Middleware
+const metricMiddleware = (app: Application) => {
+  app.use((req, res, next) => {
+  const route = req.route?.path || req.path;
+  const method = req.method;
+  const end = httpRequestDuration.startTimer({ method, route, status: '' });
+  res.on('finish', () => {
+    const status = res.statusCode.toString();
+    httpRequestsTotal.inc({ method, route, status });
+    end({ method, route, status });
+  });
+  next();
+});
+}
+
 
 
 export default {
@@ -128,5 +143,8 @@ export default {
     requestIdMiddleware,
     logMiddleware,
     errorMiddleware,
+  },
+  metrics: {
+    metricMiddleware
   }
 }

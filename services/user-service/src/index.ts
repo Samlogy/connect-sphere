@@ -1,11 +1,14 @@
-import express from "express";
+import express, { Application } from "express";
 import { app, bootstrap } from "./app";
 import error from "./error";
 import { logger, logLevelSwitcher } from "./logger";
 import mid from "./middlewares";
 import services from "./routes";
 import config from "./config";
+import utils from "./utils"
 
+// metrics endpoint
+mid.metrics.metricMiddleware(app)
 
 // Log all requests
 app.use(mid.logging.requestIdMiddleware)
@@ -27,7 +30,7 @@ app.get("/r1", (req: any, res) => {
     api: req.originalUrl,
     method: req.method,
     originUrl: req.headers.origin || req.headers.referer || "",
-      requestUrl: req.originalUrl,
+    requestUrl: req.originalUrl,
     routeToUrl: `${process.env.SERVICE_URL || ""}${req.originalUrl}`,
     responseCode: 200,
   });
@@ -60,6 +63,8 @@ error.healthCheck(app);
 /* Routes */
 services.UserServiceRoutes("/api/v1/users", app);
 
+// metrics endpoint
+utils.metrics.metricsEndpoint(app)
 
 // Global error handler
 error.globalErrorHandler(app);

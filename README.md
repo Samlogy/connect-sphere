@@ -243,7 +243,7 @@ connectsphere/
 
 ---
 
-##  5. Endpoints / Service
+##  5. User-Service Endpoints
 
 | Method   | Endpoint              | Description               | Body Example                                                        |
 | -------- | --------------------- | ------------------------- | ------------------------------------------------------------------- |
