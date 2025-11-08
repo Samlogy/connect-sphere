@@ -1,0 +1,114 @@
+services:
+  user-service:
+    build: .
+    depends_on:
+      user-service-db:
+        condition: service_healthy  # ✅ Wait for Postgres healthcheck
+      user-service-cache:
+        condition: service_healthy  # ✅ Wait for Redis healthcheck
+      logstash:
+        condition: service_started  # Wait for Logstash to start
+    ports:
+      - "4001:4001"
+    # env_file: .env
+    environment:
+      - NODE_ENV=dev
+    networks:
+      - connectsphere
+
+  user-service-db:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: usersdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - connectsphere
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usersdb"]
+      interval: 10s # how often to run the check
+      timeout: 5s # timeout for each check
+      retries: 5 # number of retries before marking unhealthy
+      start_period: 10s # grace period before health checks begin
+
+  user-service-cache:
+    image: redis:8.2.2-alpine
+    restart: always
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - connectsphere
+
+  # === Elasticsearch ===
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    # container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - connectsphere
+
+  # === Logstash ===
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.0
+    # container_name: logstash
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./logs/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044" # input port for Filebeat
+      - "9600:9600" # monitoring
+    networks:
+      - connectsphere
+
+  # === Kibana ===
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    # container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - connectsphere
+
+  # === Filebeat (Docker log collector) ===
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.0
+    # container_name: filebeat
+    user: root
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./logs/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    depends_on:
+      - logstash
+    networks:
+      - connectsphere
+
+networks:
+  connectsphere:
+    driver: bridge
+
+volumes:
+  pgdata:
+  es_data:
