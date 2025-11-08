@@ -1,5 +1,6 @@
 import { Application, NextFunction, Request, Response } from "express";
-import logger from "./logger";
+import config from "./config";
+import { logger } from "./logger";
 
 
 const globalErrorHandler = (app: Application) => {
@@ -10,16 +11,16 @@ const globalErrorHandler = (app: Application) => {
       res: Response,
       next: NextFunction
     ) => {
-      logger.logError(err, req);
+      logger.error("Error: ", err);
 
       const statusCode = err.statusCode || 500;
       res.status(statusCode).json({
         success: false,
         message:
-          process.env.NODE_ENV === 'prod'
+          config.app.node_envNODE_ENV === 'prod'
             ? 'An error occurred'
             : err.message,
-        ...(process.env.NODE_ENV !== 'prod' && { stack: err.stack }),
+        ...(config.app.node_envNODE_ENV !== 'prod' && { stack: err.stack }),
       });
     }
   );
@@ -43,8 +44,7 @@ const NotFoundHandler = (app: Application) => {
 
 const healthCheck = (app: Application) => {
   app.get('/health', (req: Request, res: Response) => {
-    (req.log || logger).info('health_check', { uptime: process.uptime() });
-    logger.info('Health check requested');
+    logger.info('health_check', { uptime: process.uptime() });
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),

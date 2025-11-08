@@ -1,6 +1,7 @@
 #  Roadmap => Sr Software Engineer
 
 **User-service:**
+beug fix => log system (non remonté log app => elasticsearch).
 
 **DB:**
 transactions, locks, partitioning, replicas, sharding.

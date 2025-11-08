@@ -142,3 +142,12 @@ SHOW track_counts;
 ## re-enable auto-vacuum & auto-analyze (in case disabled)
 ALTER TABLE users SET (autovacuum_enabled = true, autovacuum_vacuum_scale_factor = 0.2);
 ```
+
+
+
+add config filebeat:
+
+```sh
+chmod 501 logs/filebeat.yml 
+chown root logs/filebeat.yml 
+```

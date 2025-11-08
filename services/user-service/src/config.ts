@@ -1,13 +1,16 @@
 import dotenv from 'dotenv';
-dotenv.config();
+// dotenv.config();
 
-const env = process.env.NODE_ENV || 'local';
+const env = process.env.NODE_ENV || 'dev';
 
 
 const localConfig: any = {
     app: {
         port: parseInt(process.env.PORT || '4001'),
         node_env: process.env.NODE_ENV || 'local',
+        app_name: process.env.APP_NAME || 'user-service',
+        service_url: process.env.SERVICE_URL || 'http://localhost:4001',
+        app_version: process.env.APP_VERSION || "1.0.0",
     },
     auth: {
         jwt_secret: process.env.JWT_SECRET || "supersecret"
@@ -37,6 +40,9 @@ const devConfig: any = {
     app: {
         port: parseInt(process.env.PORT || '4001'),
         node_env: process.env.NODE_ENV || 'dev',
+        app_name: process.env.APP_NAME || 'user-service',
+        service_url: process.env.SERVICE_URL || 'http://localhost:4001',
+        app_version: process.env.APP_VERSION || "1.0.0",
     },
     auth: {
         jwt_secret: process.env.JWT_SECRET || "supersecret"
@@ -66,6 +72,9 @@ const prodConfig: any = {
     app: {
         port: parseInt(process.env.PORT || '4001'),
         node_env: process.env.NODE_ENV || 'prod',
+        app_name: process.env.APP_NAME || 'user-service',
+        service_url: process.env.SERVICE_URL || 'http://localhost:4001',
+        app_version: process.env.APP_VERSION || "1.0.0",
     },
     auth: {
         jwt_secret: process.env.JWT_SECRET || "supersecret"
