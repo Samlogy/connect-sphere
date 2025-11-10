@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger } from "./logger"
 import config from "./config";
 import { httpRequestDuration, httpRequestsTotal } from './metrics';
+import { app } from "./app";
 
 export interface LogEntry {
   message: string;
@@ -58,16 +59,19 @@ const corsPolicy = (app: Application) => {
 }
 
 // trace log => requestId
-const requestIdMiddleware = (req: any, res: Response, next: NextFunction) => {
+const requestIdMiddleware = (app: Application) => {
+  app.use((req: any, res: Response, next: NextFunction) => {
   const id = req.headers['x-request-id'] as string || uuidv4();
   req.requestId = id;
   res.setHeader('x-request-id', id);
 
   next();
+})
 }
 
 // log every Request
-function logMiddleware(req: any, res: Response, next: NextFunction): void {
+const logMiddleware = (app: Application) => {
+  app.use((req: any, res: Response, next: NextFunction): void => {
   const start = Date.now();
 
   res.on("finish", () => {
@@ -94,10 +98,12 @@ function logMiddleware(req: any, res: Response, next: NextFunction): void {
   });
 
   next();
+})
 }
 
 // error Middleware
-function errorMiddleware(err: any, req: any, res: Response, next: NextFunction): void {
+const errorMiddleware = (app: Application) => {
+  app.use((err: any, req: any, res: Response, next: NextFunction): void {
   const logEntry: LogEntry = {
     message: err.message || "Internal Server Error",
     stack: err.stack,
@@ -113,6 +119,7 @@ function errorMiddleware(err: any, req: any, res: Response, next: NextFunction):
 
   logger.error(logEntry);
   res.status(500).json({ error: "Internal server error" });
+})
 }
 
 // Metrics Middleware

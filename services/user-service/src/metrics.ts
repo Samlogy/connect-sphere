@@ -19,6 +19,7 @@ export const errorsTotal = new Counter({
   help: 'Total number of errors by type',
   labelNames: ['type']
 });
+
 // Business/service-specific
 export const userRegistrationsTotal = new Counter({
   name: 'svc_user_registrations_total',
@@ -51,4 +52,21 @@ export const dbQueryDuration = new Histogram({
   name: 'svc_db_query_duration_seconds',
   help: 'Duration of database queries in seconds',
   labelNames: ['query']
+});
+
+// Apdex Metrics
+export const apdexSatisfied = new Counter({
+  name: 'svc_apdex_satisfied_total',
+  help: 'Number of requests satisfying Apdex threshold',
+  labelNames: ['route']
+});
+export const apdexTolerating = new Counter({
+  name: 'svc_apdex_tolerating_total',
+  help: 'Number of requests in tolerating range (between T and 4T)',
+  labelNames: ['route']
+});
+export const apdexFrustrated = new Counter({
+  name: 'svc_apdex_frustrated_total',
+  help: 'Number of frustrated requests (above 4T or error)',
+  labelNames: ['route']
 });

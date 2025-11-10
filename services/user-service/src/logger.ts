@@ -40,18 +40,15 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-
-const setLogLevel = (level: string): void => {
-  logger.level = level;
-  logConfig.overrideLevel = level;
-  logger.info(`Log level changed to ${level}`);
-}
-
 const logLevelSwitcher = (app: Application) => {
   app.post("/api/log-level", (req: any, res: any) => {
     const { level } = req.body;
     if (level) {
-      setLogLevel(level);
+      // set log level
+      logger.level = level;
+      logConfig.overrideLevel = level;
+      logger.info(`Log level changed to ${level}`);
+
       res.json({ message: `Log level changed to ${level}` });
     } else {
       res.status(400).json({ error: "Missing log level" });
@@ -62,6 +59,5 @@ const logLevelSwitcher = (app: Application) => {
 
 export {
   logger,
-  setLogLevel,
   logLevelSwitcher
 }

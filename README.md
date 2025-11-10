@@ -80,7 +80,8 @@ Below are the core services/components with their details.
   );
   ```
 
-* Scaling: Read replicas for heavy read loads; partition/shard if user base grows large.
+- Scaling: Read replicas for heavy read loads; partition/shard if user base grows large.
+
 - Reason: relational DB suits structured relationship data.
 
 #### Service: Feed Service
@@ -114,7 +115,8 @@ Below are the core services/components with their details.
   );
   ```
 
-* Caching: Use Redis to cache recent posts per user or pre-computed feed.
+- Caching: Use Redis to cache recent posts per user or pre-computed feed.
+
 - Pagination: Use keyset pagination (e.g., created_at + id) for infinite scroll.
 - Scaling: Posts table may grow large → partition by time or user_id; replicate read traffic.
 - Reason: Combining relational DB + cache gives good read performance and simpler writes.
@@ -185,7 +187,8 @@ Below are the core services/components with their details.
   );
   ```
 
-* Data consistency: Cross-service transactions (e.g., update item and create order). Use Saga pattern for distributed transactions. ([Medium][1])
+- Data consistency: Cross-service transactions (e.g., update item and create order). Use Saga pattern for distributed transactions. ([Medium][1])
+
 - Scaling: Partition orders by seller_id or buyer_id; read replicas for order queries.
 - Reason: E-commerce type flows require careful consistency management and microservice boundaries.
 
@@ -257,3 +260,27 @@ connectsphere/
 | **GET**  | `/{userId}/following` | List users being followed | —                                                                   |
 
 ---
+
+##  6. Metrcis System
+
+┌────────────────────────────┐
+│        Node.js App         │  ← exposes /metrics via prom-client
+└───────────┬────────────────┘
+            │
+┌───────────┴───────────┐     ┌────────────────┐     ┌────────────────────┐
+│  Redis Exporter       │     │ Postgres Exporter │   │ Node Exporter (system) │
+└───────────┬───────────┘     └──────────┬───────┘   └──────────┬──────────┘
+            │                            │                       │
+            └──────────────┬─────────────┴─────────────┬─────────┘
+                           │
+                     ┌─────▼──────┐
+                     │ Prometheus │  ← scrapes all exporters
+                     └─────┬──────┘
+                           │
+                     ┌─────▼────────────┐
+                     │  Alertmanager    │ ← sends alerts (e.g. Telegram, Slack, Email)
+                     └─────┬────────────┘
+                           │
+                     ┌─────▼───────┐
+                     │  Grafana    │ ← visualization, dashboards
+                     └─────────────┘

@@ -27,9 +27,9 @@ const localConfig: any = {
     },
     log: {
         logLevel: process.env.LOG_LEVEL || 'info',
-        log_to_stdout: process.env.LOG_TO_STDOUT || true,
-        redact_fields: process.env.REDACT_FIELDS || 'password,authorization,token',
-        env,
+        // log_to_stdout: process.env.LOG_TO_STDOUT || true,
+        // redact_fields: process.env.REDACT_FIELDS || 'password,authorization,token',
+        // env,
     },
     elk: {
         enabled: false,
@@ -59,9 +59,9 @@ const devConfig: any = {
     },
     log: {
         logLevel: process.env.LOG_LEVEL || 'info',
-        log_to_stdout: process.env.LOG_TO_STDOUT || true,
-        redact_fields: process.env.REDACT_FIELDS || 'password,authorization,token',
-        env,
+        // log_to_stdout: process.env.LOG_TO_STDOUT || true,
+        // redact_fields: process.env.REDACT_FIELDS || 'password,authorization,token',
+        // env,
     },
     elk: {
         enabled: false,
@@ -90,10 +90,10 @@ const prodConfig: any = {
         url: process.env.REDIS_URL || "redis://user-service-cache:6379",
     },
     log: {
-        logLevel: process.env.LOG_LEVEL || 'info',
-        log_to_stdout: process.env.LOG_TO_STDOUT || true,
-        redact_fields: process.env.REDACT_FIELDS || 'password,authorization,token',
-        env,
+        logLevel: process.env.LOG_LEVEL || 'error',
+        // log_to_stdout: process.env.LOG_TO_STDOUT || true,
+        // redact_fields: process.env.REDACT_FIELDS || 'password,authorization,token',
+        // env,
     },
     elk: {
         enabled: false,

@@ -151,3 +151,8 @@ add config filebeat:
 chmod 501 logs/filebeat.yml 
 chown root logs/filebeat.yml 
 ```
+
+**Changing Logs Level:**
+the log level can be changed with:
+POST http://localhost:4001/api/log-level
+body => {"level": "error"}
