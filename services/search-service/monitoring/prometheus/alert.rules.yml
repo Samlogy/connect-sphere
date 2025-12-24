@@ -1,0 +1,46 @@
+groups:
+  - name: app_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(node_cpu_seconds_total{mode="system"}[2m]) > 0.8
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage > 80% for more than 2 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory Usage"
+          description: "Memory usage exceeded 80%"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+
+      - alert: ApdexLow
+        expr: (sum(rate(svc_apdex_satisfied_total[5m])) + 0.5 * sum(rate(svc_apdex_tolerating_total[5m]))) /
+              (sum(rate(svc_apdex_satisfied_total[5m])) + sum(rate(svc_apdex_tolerating_total[5m])) + sum(rate(svc_apdex_frustrated_total[5m]))) < 0.85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low Apdex Score"
+          description: "Apdex score dropped below 0.85 for 5 minutes."

@@ -196,5 +196,4 @@ export default {
     getFollowers,
     getFollowing
   }
-
 }

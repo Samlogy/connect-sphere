@@ -1,20 +1,36 @@
 filebeat.inputs:
   - type: container
+    enabled: true
     paths:
       - /var/lib/docker/containers/*/*.log
+    scan_frequency: 1s
+
+    # Parse Docker JSON log driver
     json.message_key: log
+    json.keys_under_root: true
     json.add_error_key: true
     json.expand_keys: true
+
     processors:
       - add_docker_metadata: ~
       - drop_event:
           when:
-            contains:
-              container.name: "filebeat"
-      - drop_event:
-          when:
-            contains:
-              container.name: "elasticsearch"
+            or:
+              - contains:
+                  container.name: "elasticsearch"
+              - contains:
+                  container.name: "logstash"
+              - contains:
+                  container.name: "filebeat"
+              - contains:
+                  container.name: "kibana"
+      - drop_fields:
+          fields: ["stream", "input", "prospector", "log.offset"]
+      - add_fields:
+          target: ""
+          fields:
+            log_type: "application"
+            environment: "${NODE_ENV:local}"
 
 output.logstash:
   hosts: ["logstash:5044"]

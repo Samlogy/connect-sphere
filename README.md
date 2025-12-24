@@ -284,3 +284,17 @@ connectsphere/
                      ┌─────▼───────┐
                      │  Grafana    │ ← visualization, dashboards
                      └─────────────┘
+
+# Search Service
+
+**Flux Search-Service:**
+
+Clients => API Gateway => Search Service (search API)
+Other services (Feed, User, Marketplace) => publish events => RabbitMQ => Search Service consumer => write to Elasticsearch
+
+**Search Service responsibilities:**
+
+- Provide search API (posts, users, products)
+- Index events (consume from RabbitMQ)
+- Reindex endpoints & health checks
+- Bulk indexing and consistency handling

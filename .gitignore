@@ -1,5 +1,10 @@
 services/user-service/.env
 services/user-service/node_modules
+services/user-service/dist
+
+services/search-service/.env
+services/search-service/node_modules
+services/search-service/dist
 
 front/node_modules
 front/.env
