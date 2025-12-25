@@ -4,8 +4,7 @@ import error from "./error";
 import { logger } from "./logger";
 import mid from "./middlewares";
 import routes from "./routes";
-import { register } from "./metrics";
-// import utils from "./utils"
+import metrics from "./metrics";
 
 
 // Basic middleware (security)
@@ -13,6 +12,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // metrics endpoint
+app.get("/metrics", async (req, res) => {
+  res.set('Content-Type', metrics.contentType);
+  res.send(await metrics.metrics());
+});
 
 
 // Health check
@@ -20,15 +23,6 @@ app.use(express.urlencoded({ extended: true }));
 
 /* Routes */
 routes.SearchServiceRoutes("/api/v1/search", app);
-
-// ensure indices exist at startup
-
-// metrics endpoint
-// utils.metrics.metricsEndpoint(app)
-app.get("/metrics", async (_, res) => {
-  res.set("Content-Type", register.contentType);
-  res.end(await register.metrics());
-});
 
 // Global error handler
 error.globalErrorHandler(app);

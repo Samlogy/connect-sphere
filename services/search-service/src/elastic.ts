@@ -62,11 +62,11 @@ export const esClient = new Client({ node: config.elastic.ELASTIC_URL });
 
 // create POST index *****************
 export async function initRessourceIndex(index: string) {
-  const exists = await esClient.indices.exists({ index: index });
+  const exists = await esClient.indices.exists({ index });
 
   if (!exists) {
     await esClient.indices.create({
-      index: "posts",
+      index,
       body: {
         settings: {
           analysis: {
@@ -102,18 +102,17 @@ export async function initRessourceIndex(index: string) {
       }
     });
 
-    console.log("✅ posts index created");
+    logger.info("✅ posts index created");
   } else {
-    console.log("ℹ️ posts index already exists");
+    logger.info("ℹ️ posts index already exists");
   }
-  console.log('INDEX CREATED !!')
 }
 // init multiple ressource index
 // another method
 
 
 // elastic services *****************
-async function deleteDocument(index: string, id: string) {
+async function deleteRessource(index: string, id: string) {
   try {
     return await esClient.delete({ index, id });
   } catch (err: any) {
@@ -190,12 +189,19 @@ export async function searchRessource(
   return response;
 }
 
-export async function indexRessource(index: string, data: any) {
-  await esClient.index({
-    index,
-    id: data.id,
-    document: data,
-  });
+export async function indexRessource(index: string, event: string, data: any) {
+  if (event.includes("_UPDATED") || event.includes("_CREATED")) {
+    await esClient.index({
+      index,
+      id: data.id,
+      document: data,
+    });
+    logger.info(index + " ressouce "+ event);
+  }
+  if (event.includes("_DELETED")) {
+    await deleteRessource(index, data.id)
+    logger.info(index + " ressouce "+ event);
+  }
 }
 
 export async function reindexDocuments(index: string, docs: Array<{ id: string; body: any }>) {

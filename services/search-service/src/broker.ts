@@ -19,9 +19,10 @@ export async function startConsumer(index: string, ressourceType: string, eventT
 
     const event = JSON.parse(msg.content.toString());
 
+    // handles => create / update events
     if (event.type === eventType) {
-      await indexRessource(event.data, index);
-      logger.info(`📥 ${index} indexed from event`);
+      await indexRessource(index, eventType, event.data);
+      logger.info(`📥 ${index} indexed from event: ${eventType}`);
     }
 
     channel.ack(msg);

@@ -27,7 +27,7 @@ services:
     image: redis:7-alpine
     ports:
       - 6380:6379
-
+  
   # search-service:
   #   build: .
   #   env_file: .env
@@ -38,27 +38,39 @@ services:
   #   ports:
   #   - 4002:4002
 
+  elastic-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    command:
+      - '--es.uri=http://elasticsearch:9200'
+    restart: always
+    depends_on:
+      - search-elastic
+    ports:
+      - "127.0.0.1:9114:9114"   
+
+  # redis-exporter:
+  #   image: oliver006/redis_exporter:alpine
+  #   depends_on:
+  #     - search-cache
+  #   ports:
+  #     - 9210:9210
+
+
   # prometheus:
   #   image: prom/prometheus:alpine
   #   volumes:
   #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
   #   ports:
-  #     - 9090:9090
+  #     - 9091:9090
 
   # grafana:
   #   image: grafana/grafana:9.6.11-alpine
   #   environment:
   #     - GF_SECURITY_ADMIN_PASSWORD=admin
   #   ports:
-  #     - 3000:3000
+  #     - 3001:3000
   #   depends_on:
   #     - prometheus
-
-  # redis-exporter:
-  #   image: oliver006/redis_exporter:alpine
-  #   command: ["--redis.addr=redis://redis:6379"]
-  #   ports:
-  #     - 9121:9121
 
 volumes:
   esdata:

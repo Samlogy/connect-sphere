@@ -8,7 +8,7 @@ export async function search(req: Request, res: Response) {
   const q = req.query.q as string;
   const offset = Number(req.query.offset || 0);
   const limit = Number(req.query.limit || 10);
-  const ressourceType = req.body.ressourceType || "posts";
+  const ressourceType = req.body?.ressourceType || "posts";
 
   const results = await searchRessource(ressourceType, q, offset, limit);
   res.json({
