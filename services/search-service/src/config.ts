@@ -17,7 +17,7 @@ const localConfig: any = {
         // env,
     },
     elastic: {
-        ELASTIC_URL: "http://localhost:9201"
+        ELASTIC_URL: process.env.ELASTIC_URL || 'http://localhost:9201'
     },
     broker: {
         RABBIT_URL: "amqp://rabbitmq:5672"
@@ -41,7 +41,7 @@ const devConfig: any = {
         // env,
     },
     elastic: {
-        ELASTIC_URL: "http://elasticsearch:9200"
+        ELASTIC_URL: process.env.ELASTIC_URL || 'http://localhost:9200'
     },
     broker: {
         RABBIT_URL: "amqp://rabbitmq"
@@ -65,7 +65,7 @@ const prodConfig: any = {
         // env,
     },
     elastic: {
-        ELASTIC_URL: "http://elasticsearch:9200"
+        ELASTIC_URL: process.env.ELASTIC_URL || 'http://localhost:9200'
     },
     broker: {
         RABBIT_URL: "amqp://rabbitmq"

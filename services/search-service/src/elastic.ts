@@ -1,67 +1,205 @@
 import { Client } from '@elastic/elasticsearch';
+import { getCache, setCache } from './cache';
+import { logger } from './logger';
 import config from './config';
 
-export const esClient = new Client({ node: config.elastic.ELASTIC_URL });
 
-export async function ensureIndices() {
-  const indices = [
-    { name: 'posts', mapping: require('./mappings/indices').postMapping },
-    { name: 'users', mapping: require('./mappings/indices').userMapping },
-    { name: 'products', mapping: require('./mappings/indices').productMapping }
-  ];
-  for (const idx of indices) {
-    const exists = await esClient.indices.exists({ index: idx.name });
-    if (!exists) {
-      await esClient.indices.create({
-        index: idx.name,
-        body: idx.mapping
-      });
-      console.log(`✅ Created index ${idx.name}`);
-    } else {
-      console.log(`ℹ️ Index ${idx.name} already exists`);
+// mapping indices *****************
+const POST_INDEX = "posts_index";
+const USER_INDEX = "users_index";
+const PRODUCT_INDEX = "products_index";
+
+export const mappgins = {
+  POST_INDEX,
+  USER_INDEX,
+  PRODUCT_INDEX
+}
+
+const postMapping = {
+  settings: {
+    analysis: {
+      analyzer: {
+        autocomplete_analyzer: {
+          type: 'custom',
+          tokenizer: 'autocomplete_tokenizer',
+          filter: ['lowercase']
+        },
+        autocomplete_search_analyzer: {
+          type: 'custom',
+          tokenizer: 'standard',
+          filter: ['lowercase']
+        }
+      },
+      tokenizer: {
+        autocomplete_tokenizer: {
+          type: 'edge_ngram',
+          min_gram: 2,
+          max_gram: 20,
+          token_chars: ['letter', 'digit', 'whitespace']
+        }
+      }
+    }
+  },
+  mappings: {
+    properties: {
+      id: { type: 'keyword' },
+      user_id: { type: 'keyword' },
+      title: { type: 'text', analyzer: 'autocomplete_analyzer', search_analyzer: 'autocomplete_search_analyzer' },
+      content: { type: 'text' },
+      tags: { type: 'keyword' },
+      media_url: { type: 'keyword' },
+      description: { type: 'text', analyzer: 'product_analyzer' },
+      price: { type: 'double' },
+      seller_id: { type: 'keyword' },
+      created_at: { type: 'date' }
     }
   }
-}
+};
+
+// elastic config *****************
+export const esClient = new Client({ node: config.elastic.ELASTIC_URL });
 
 
+// create POST index *****************
+export async function initRessourceIndex(index: string) {
+  const exists = await esClient.indices.exists({ index: index });
 
-
-// Index single doc (idempotent: use same id)
-export async function indexDocument(index: string, id: string, body: any) {
-  return esClient.index({
-    index,
-    id,
-    document: body,
-    refresh: 'false' // don't refresh on each doc; use bulk or periodic refresh in prod
-  });
-}
-
-// Bulk index with array of { index, id, body } items
-export async function bulkIndex(docs: Array<{index:string, id:string, body:any}>) {
-  if (!docs.length) return { took:0 };
-  const bulkBody: any[] = [];
-  for (const d of docs) {
-    bulkBody.push({ index: { _index: d.index, _id: d.id } });
-    bulkBody.push(d.body);
-  }
-  const response = await esClient.bulk({ refresh: 'true', operations: bulkBody });
-  if (response.errors) {
-    // log failures and handle accordingly
-    const items = response.items || [];
-    const failed = items.filter((it:any) => {
-      const op = Object.values(it)[0] as any;
-      return op && op.error;
+  if (!exists) {
+    await esClient.indices.create({
+      index: "posts",
+      body: {
+        settings: {
+          analysis: {
+            analyzer: {
+              autocomplete: {
+                type: 'custom',
+                tokenizer: "autocomplete",
+                filter: ["lowercase"]
+              }
+            },
+            tokenizer: {
+              autocomplete: {
+                type: "edge_ngram",
+                min_gram: 2,
+                max_gram: 20
+              }
+            }
+          }
+        },
+        mappings: {
+          properties: {
+            id: { type: "keyword" },
+            title: {
+              type: "text",
+              analyzer: "autocomplete",
+              search_analyzer: "standard"
+            },
+            content: { type: "text" },
+            author_id: { type: "keyword" },
+            created_at: { type: "date" }
+          }
+        }
+      }
     });
-    console.error('Bulk indexing had failures:', failed);
+
+    console.log("✅ posts index created");
+  } else {
+    console.log("ℹ️ posts index already exists");
   }
+  console.log('INDEX CREATED !!')
+}
+// init multiple ressource index
+// another method
+
+
+// elastic services *****************
+async function deleteDocument(index: string, id: string) {
+  try {
+    return await esClient.delete({ index, id });
+  } catch (err: any) {
+    if (err?.meta?.body?.result === 'not_found') return null;
+    throw err;
+  }
+}
+
+async function bulkIndex(docs: Array<{ index: string; id: string; body: any }>) {
+  if (!docs.length) return { took: 0 };
+  const operations: any[] = [];
+  for (const d of docs) {
+    operations.push({ index: { _index: d.index, _id: d.id } });
+    operations.push(d.body);
+  }
+  const result = await esClient.bulk({ operations, refresh: false });
+  if (result.errors) {
+    // console.error('Bulk errors:', result.items?.filter((i: any) => Object.values(i)[0].error));
+    console.error('Bulk errors: ', result.items?.filter((i: any) => Object.values(i)[0]));
+  }
+  return result;
+}
+
+async function searchIndex(index: string, body: any, size = 10, from = 0) {
+  return esClient.search({ index, body, size, from });
+}
+
+export function buildSearchKey(
+  index: string,
+  query: string,
+  offset: number,
+  limit: number
+) {
+  return `search:${index}:${query}:${offset}:${limit}`;
+}
+
+export async function searchRessource(
+  index: string,
+  query: string,
+  offset: number,
+  limit: number
+) {
+  const cacheKey = buildSearchKey(index, query, offset, limit);
+
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    logger.info("⚡ CACHE HIT");
+    return cached;
+  }
+
+  logger.info("❌ CACHE MISS → Elasticsearch");
+
+  const result = await esClient.search({
+    index: "posts",
+    from: offset,
+    size: limit,
+    query: {
+      multi_match: {
+        query,
+        fields: ["title^3", "content"],
+        fuzziness: "AUTO",
+      },
+    },
+  });
+
+  const response = result.hits.hits.map((hit: any) => ({
+    id: hit._id,
+    score: hit._score,
+    ...hit._source,
+  }));
+
+  await setCache(cacheKey, response);
+
   return response;
 }
 
-export async function searchIndex(index: string, query:any, size=10, from=0) {
-  return esClient.search({
+export async function indexRessource(index: string, data: any) {
+  await esClient.index({
     index,
-    body: query,
-    size,
-    from
+    id: data.id,
+    document: data,
   });
 }
+
+export async function reindexDocuments(index: string, docs: Array<{ id: string; body: any }>) {
+  const payload = docs.map((d) => ({ index, id: d.id, body: d.body }));
+  return bulkIndex(payload);
+}
+
