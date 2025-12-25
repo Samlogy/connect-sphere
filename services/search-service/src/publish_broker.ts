@@ -1,4 +1,4 @@
-const amqp = require("amqplib");
+import amqp from "amqplib"
 
 async function run() {
   const conn = await amqp.connect("amqp://localhost");
@@ -31,6 +31,7 @@ async function run() {
 
 
   const raw = process.argv[2];
+  console.log('RAW => ', raw)
   if (raw) dataset = JSON.parse(raw);  
 
   for (const d of dataset) {
@@ -41,7 +42,21 @@ async function run() {
     console.log("📤 Published: ", d.title);
   } 
 
+  await ch.close();
+  await conn.close();
   setTimeout(() => process.exit(0), 500);
 }
 
 run();
+
+
+// node dist/publish_broker.js 
+// '[
+//     {
+//       "id": "p3",
+//       "title": "Microservices Architecture",
+//       "content": "Event-driven systems and scalability",
+//       "author_id": "u3",
+//       "created_at": "2025-11-16T00:00:00Z",
+//     }
+// ]'

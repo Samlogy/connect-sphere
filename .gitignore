@@ -6,7 +6,10 @@ services/search-service/.env
 services/search-service/node_modules
 services/search-service/dist
 
+services/gw/.env
+services/gw/node_modules
+services/gw/dist
+
+
 front/node_modules
 front/.env
-
-gw
